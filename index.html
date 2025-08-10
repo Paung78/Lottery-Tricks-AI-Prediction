@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lottery AI Prediction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Intro Animation Styles */
+    #intro-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0a0a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    .intro-content {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-assembly {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo-final {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1000px;
+    }
+    
+    .letter {
+      position: absolute;
+      font-weight: 900;
+      font-size: 100px;
+      color: transparent;
+      -webkit-text-stroke: 2px #7b2cbf;
+      text-stroke: 2px #7b2cbf;
+      opacity: 0;
+      transform-style: preserve-3d;
+    }
+    
+    .letter.L {
+      left: 10px;
+      animation: 
+        materializeL 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 0.3s,
+        glowL 2s infinite alternate 1.5s;
+    }
+    
+    .letter.T {
+      right: 10px;
+      animation: 
+        materializeT 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 0.3s,
+        glowT 2s infinite alternate 1.5s;
+    }
+    
+    .energy-core {
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(123,44,191,0.2) 0%, rgba(58,12,163,0) 70%);
+      opacity: 0;
+      animation: energyPulse 3s infinite 1.5s;
+    }
+    
+    .caption {
+      margin-top: 20px;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      opacity: 0;
+      animation: fadeIn 1s forwards 2s;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      background: linear-gradient(90deg, #7b2cbf, #3a0ca3);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 15px rgba(123, 44, 191, 0.4);
+    }
+    
+    .light-streak {
+      position: absolute;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #7b2cbf, #3a0ca3, transparent);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      filter: blur(1px);
+      opacity: 0;
+      animation: lightStreak 0.8s forwards 1.2s;
+    }
+    
+    /* Animation Keyframes */
+    @keyframes materializeL {
+      0% {
+        transform: translateX(-80px) rotateY(90deg);
+        opacity: 0;
+        -webkit-text-stroke-width: 0;
+        text-stroke-width: 0;
+      }
+      70% {
+        opacity: 0.8;
+        -webkit-text-stroke-width: 3px;
+        text-stroke-width: 3px;
+      }
+      100% {
+        transform: translateX(0) rotateY(0);
+        opacity: 1;
+        -webkit-text-stroke-width: 2px;
+        text-stroke-width: 2px;
+      }
+    }
+    
+    @keyframes materializeT {
+      0% {
+        transform: translateX(80px) rotateY(-90deg);
+        opacity: 0;
+        -webkit-text-stroke-width: 0;
+        text-stroke-width: 0;
+      }
+      70% {
+        opacity: 0.8;
+        -webkit-text-stroke-width: 3px;
+        text-stroke-width: 3px;
+      }
+      100% {
+        transform: translateX(0) rotateY(0);
+        opacity: 1;
+        -webkit-text-stroke-width: 2px;
+        text-stroke-width: 2px;
+      }
+    }
+    
+    @keyframes glowL {
+      0%, 100% {
+        text-shadow: 0 0 10px rgba(123, 44, 191, 0.8);
+      }
+      50% {
+        text-shadow: 0 0 20px rgba(123, 44, 191, 1), 
+                     0 0 30px rgba(58, 12, 163, 0.8);
+      }
+    }
+    
+    @keyframes glowT {
+      0%, 100% {
+        text-shadow: 0 0 10px rgba(58, 12, 163, 0.8);
+      }
+      50% {
+        text-shadow: 0 0 20px rgba(58, 12, 163, 1), 
+                     0 0 30px rgba(123, 44, 191, 0.8);
+      }
+    }
+    
+    @keyframes energyPulse {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: scale(1.2);
+        opacity: 0;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes lightStreak {
+      0% {
+        width: 0;
+        opacity: 0;
+      }
+      30% {
+        opacity: 0.8;
+      }
+      100% {
+        width: 250px;
+        opacity: 0;
+      }
+    }
+    
+    /* Floating particles */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      animation: float 15s infinite linear;
+      opacity: 0;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-150px) translateX(30px);
+        opacity: 0;
+      }
+    }
+
+    /* Main App Styles */
+    /* Common Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .page {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .active-page {
+      display: block;
+    }
+    
+    /* Page 1 Styles */
+    .card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    h2 {
+      margin: 0;
+      color: #00d4ff;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(to right, #00d4ff, #00f2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .subtitle {
+      margin: 8px 0 0;
+      opacity: 0.8;
+      font-size: 14px;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 15px 20px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      outline: none;
+      transition: all 0.3s;
+      box-sizing: border-box;
+    }
+    
+    input:focus {
+      border-color: #00d4ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+    
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(45deg, #00d4ff, #00a8ff);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+      color: #fff;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 65, 108, 0.4);
+    }
+    
+    .timer {
+      margin: 15px 0;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .active-timer {
+      color: #00ff9d;
+    }
+    
+    .expired-timer {
+      color: #ff416c;
+    }
+    
+    .credits {
+      margin-top: 25px;
+      font-size: 12px;
+      opacity: 0.6;
+      text-align: center;
+    }
+    
+    .link-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    .icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    .telegram-icon {
+      color: #0088cc;
+    }
+    
+    .key-icon {
+      color: #f9d423;
+    }
+    
+    .trash-icon {
+      color: #fff;
+    }
+    
+    /* Page 2 Styles */
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #5649c0;
+      --secondary: #00cec9;
+      --danger: #ff7675;
+      --success: #00b894;
+      --dark: #2d3436;
+      --light: #f5f6fa;
+    }
+    
+    .container {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .page2 h2 {
+      margin: 0 0 10px;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      background: linear-gradient(to right, #00d4ff, #00a8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .page2 .subtitle {
+      margin: 0 0 20px;
+      opacity: 0.8;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .number-inputs {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .number-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      text-align: center;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .number-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+    }
+    
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .result-card {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .prediction {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .confidence {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(0, 184, 148, 0.2);
+      border: 1px solid rgba(0, 184, 148, 0.4);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .vote-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 15px 0;
+    }
+    
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .tag-big {
+      background: rgba(108, 92, 231, 0.15);
+      border: 1px solid rgba(108, 92, 231, 0.3);
+      color: #a29bfe;
+    }
+    
+    .tag-small {
+      background: rgba(253, 121, 168, 0.15);
+      border: 1px solid rgba(253, 121, 168, 0.3);
+      color: #fd79a8;
+    }
+    
+    .input-summary {
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    
+    .breakdown {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .breakdown-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .signal-item {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .signal-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .signal-name {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    
+    .signal-result {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .result-big {
+      background: rgba(108, 92, 231, 0.2);
+      color: #a29bfe;
+    }
+    
+    .result-small {
+      background: rgba(253, 121, 168, 0.2);
+      color: #fd79a8;
+    }
+    
+    .result-tie {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    
+    .weights {
+      margin-top: 15px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+    
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      font-size: 18px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <!-- Intro Animation -->
+  <div id="intro-container">
+    <div class="intro-content">
+      <div class="particles" id="particles"></div>
+      <div class="logo-assembly">
+        <div class="logo-final">
+          <div class="letter L">L</div>
+          <div class="letter T">T</div>
+          <div class="energy-core"></div>
+          <div class="light-streak"></div>
+        </div>
+      </div>
+      <div class="caption">Lottery Tricks AI Prediction V2.2</div>
+    </div>
+  </div>
+
+  <!-- Page 1 - Premium Key Access -->
+  <div id="page1" class="page">
+    <div class="card">
+      <div class="header">
+        <h2>Lottery Tricks AI Predictions Calculator</h2>
+        <p class="subtitle">Enter your premium key to unlock advanced predictions</p>
+      </div>
+      
+      <div class="input-group">
+        <input id="keyInput" placeholder="Enter Premium Key (FORMAT: KEY-XXXXXX)" />
+      </div>
+      
+      <div class="button-grid">
+        <button id="activateBtn" class="btn-primary">
+          <i class="fas fa-key key-icon icon"></i>
+          ACTIVATE PREMIUM
+        </button>
+        
+        <div class="link-buttons">
+          <button class="btn-secondary" onclick="openLink('https://t.me/PGMONEY67800')">
+            <i class="fab fa-telegram telegram-icon icon"></i>
+            VIP CHANNEL 1
+          </button>
+          <button class="btn-secondary" onclick="openLink('https://t.me/pgmoney2_67800')">
+            <i class="fab fa-telegram telegram-icon icon"></i>
+            VIP CHANNEL 2
+          </button>
+          <button class="btn-secondary" onclick="openLink('https://t.me/Paunggyi111')">
+            <i class="fas fa-key key-icon icon"></i>
+            GET KEY
+          </button>
+          <button id="clearBtn" class="btn-danger" title="Clear session">
+            <i class="fas fa-trash-alt trash-icon icon"></i>
+            CLEAR
+          </button>
+        </div>
+      </div>
+      
+      <div id="timer" class="timer">
+        <i class="fas fa-clock"></i> Session status will appear here
+      </div>
+      
+      <div class="credits">CRD BY PYAUNGGYI</div>
+    </div>
+  </div>
+
+  <!-- Page 2 - Lottery Prediction -->
+  <div id="page2" class="page">
+    <button class="back-btn" id="backBtn">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <div class="container">
+      <h2>Lottery AI Prediction</h2>
+      <p class="subtitle">Enter 5 or 6 numbers (0-9) for AI analysis</p>
+      
+      <div class="input-group">
+        <div class="number-inputs">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+          <input type="number" min="0" max="9" class="number-input" placeholder="0">
+        </div>
+      </div>
+      
+      <div class="button-group">
+        <button id="calcBtn" class="btn-primary">
+          <i class="fas fa-calculator"></i>
+          CALCULATE
+        </button>
+        <button id="clearBtn2" class="btn-secondary">
+          <i class="fas fa-eraser"></i>
+          CLEAR
+        </button>
+      </div>
+      
+      <div class="result-card" id="output">
+        <div class="prediction">
+          <i class="fas fa-crystal-ball"></i>
+          <span id="predictionText">Prediction will appear here</span>
+          <span class="confidence" id="confidenceText">-</span>
+        </div>
+        
+        <div class="vote-tags" id="voteTags"></div>
+        
+        <div class="input-summary" id="inputSummary"></div>
+      </div>
+      
+      <div class="breakdown" id="details">
+        <div class="breakdown-title">
+          <i class="fas fa-chart-bar"></i>
+          <span>Signal Breakdown</span>
+        </div>
+        <div id="signalDetails"></div>
+        <div class="weights" id="weightsInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Create floating particles
+    const particlesContainer = document.getElementById('particles');
+    const particleCount = 20;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      
+      // Random position
+      const posX = Math.random() * 100;
+      const posY = Math.random() * 100 + 100;
+      
+      // Random size
+      const size = Math.random() * 3 + 1;
+      
+      // Random animation duration
+      const duration = Math.random() * 15 + 10;
+      
+      // Random delay
+      const delay = Math.random() * 10;
+      
+      // Random color (purple/blue range)
+      const hue = 270 + Math.random() * 30 - 15;
+      const saturation = 70 + Math.random() * 20;
+      const lightness = 50 + Math.random() * 20;
+      
+      particle.style.left = `${posX}%`;
+      particle.style.top = `${posY}%`;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.animationDuration = `${duration}s`;
+      particle.style.animationDelay = `${delay}s`;
+      particle.style.backgroundColor = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.7)`;
+      particle.style.boxShadow = `0 0 ${size*2}px ${size}px hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`;
+      
+      particlesContainer.appendChild(particle);
+    }
+
+    // Hide intro and show main app after 5 seconds
+    setTimeout(() => {
+      document.getElementById('intro-container').style.display = 'none';
+      showPage('page1');
+    }, 5000); // Changed to 5000ms (5 seconds)
+
+    // Common functions
+    function openLink(u){ window.open(u, '_blank'); }
+    
+    // Page switching
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active-page');
+      });
+      document.getElementById(pageId).classList.add('active-page');
+    }
+    
+    document.getElementById('backBtn').addEventListener('click', () => {
+      showPage('page1');
+    });
+
+    // ---------- PremiumKey Module ----------
+    const PremiumKey = (function(){
+      const firebaseConfig = {
+        apiKey: "AIzaSyAy3QvFmhKiOX38MZiINfZq2yYXGhb7uL8",
+        authDomain: "ck-adm.firebaseapp.com",
+        databaseURL: "https://ck-adm-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "ck-adm",
+        storageBucket: "ck-adm.appspot.com",
+        messagingSenderId: "192822942347",
+        appId: "1:192822942347:web:f27eee393e16c84544528e"
+      };
+
+      let db = null;
+      let expireTime = parseInt(localStorage.getItem('expireTime')) || 0;
+      let timerId = null;
+
+      function initFirebase(){
+        try{
+          if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
+          db = firebase.database();
+          return true;
+        }catch(e){ console.error('Firebase init failed:', e); return false; }
+      }
+
+      function _saveExpire(t){
+        expireTime = t;
+        if(t) localStorage.setItem('expireTime', String(t));
+        else localStorage.removeItem('expireTime');
+      }
+
+      function getExpireTime(){ return expireTime || 0; }
+      function getRemainingSeconds(){ return Math.max(Math.floor(((expireTime||0) - Date.now())/1000), 0); }
+      function isActive(){ return getRemainingSeconds() > 0; }
+
+      function clearSession(){
+        _saveExpire(0);
+        if(timerId){ clearInterval(timerId); timerId = null; }
+        window.dispatchEvent(new CustomEvent('premium-expired'));
+      }
+
+      async function activateKey(keyRaw){
+        if(!db) throw new Error('Firebase is not initialized. Call initFirebase() first.');
+        const key = String(keyRaw||'').trim().toUpperCase();
+        if(!key) throw new Error('Please provide a premium key.');
+        const fmt = /^KEY-[A-Z0-9]{6}$/;
+        if(!fmt.test(key)) throw new Error('Invalid key format. Use: KEY-XXXXXX');
+
+        const snap = await db.ref('keys/' + key).once('value');
+        if(!snap.exists()) throw new Error('Invalid Premium Key');
+        const data = snap.val() || {};
+
+        if(data.used) throw new Error('This key has already been used!');
+        const mins = Number(data.duration || 0);
+        if(!mins || mins <= 0) throw new Error('Key has no duration.');
+
+        const newExpire = Date.now() + mins * 60 * 1000;
+        _saveExpire(newExpire);
+        await db.ref('keys/' + key).update({ used: true });
+
+        window.dispatchEvent(new CustomEvent('premium-activated', {
+          detail: { key, durationMinutes: mins, expireTime: newExpire }
+        }));
+        return { key, durationMinutes: mins, expireTime: newExpire };
+      }
+
+      function startTimer(onTick){
+        if(timerId){ clearInterval(timerId); timerId = null; }
+        if(typeof onTick === 'function') onTick(getRemainingSeconds());
+        timerId = setInterval(()=>{
+          const sec = getRemainingSeconds();
+          if(typeof onTick === 'function') onTick(sec);
+          if(sec <= 0){
+            clearInterval(timerId); timerId = null;
+            window.dispatchEvent(new CustomEvent('premium-expired'));
+          }
+        }, 1000);
+        return true;
+      }
+
+      return { initFirebase, activateKey, startTimer, isActive, getRemainingSeconds, getExpireTime, clearSession };
+    })();
+
+    // ---------- Page 1 Wiring ----------
+    const $input = document.getElementById('keyInput');
+    const $btn = document.getElementById('activateBtn');
+    const $clear = document.getElementById('clearBtn');
+    const $timer = document.getElementById('timer');
+
+    function setBusy(b){
+      $btn.disabled = b;
+      $btn.innerHTML = b ? '<i class="fas fa-spinner fa-spin icon"></i> VERIFYING...' : '<i class="fas fa-key key-icon icon"></i> ACTIVATE PREMIUM';
+    }
+
+    function renderTimer(sec){
+      if(sec > 0){
+        const m = Math.floor(sec/60), s = sec%60;
+        $timer.innerHTML = `<i class="fas fa-clock"></i> PREMIUM ACTIVE: ${m}m ${s}s remaining`;
+        $timer.className = 'timer active-timer';
+      }else{
+        $timer.innerHTML = `<i class="fas fa-exclamation-circle"></i> SESSION EXPIRED - Enter a new key`;
+        $timer.className = 'timer expired-timer';
+      }
+    }
+
+    // Init
+    PremiumKey.initFirebase();
+
+    // Resume timer if active
+    if(PremiumKey.isActive()){
+      PremiumKey.startTimer(renderTimer);
+      showPage('page2');
+    }else{
+      renderTimer(0);
+    }
+
+    // Events
+    $btn.addEventListener('click', async ()=>{
+      try{
+        setBusy(true);
+        const res = await PremiumKey.activateKey($input.value);
+        alert(`🎉 Premium Activated!\nDuration: ${res.durationMinutes} minutes`);
+        PremiumKey.startTimer(renderTimer);
+        showPage('page2');
+      }catch(e){
+        alert(`⚠️ Error: ${e.message || 'Activation failed'}`);
+      }finally{
+        setBusy(false);
+      }
+    });
+
+    $clear.addEventListener('click', ()=>{
+      if(confirm('Are you sure you want to clear your current session?')) {
+        PremiumKey.clearSession();
+        renderTimer(0);
+      }
+    });
+
+    // ---------- Page 2 Logic ----------
+    // ---- Mapping: 0–4 Small, 5–9 Big
+    function toType(n){ return (n>=0 && n<=4) ? 'SMALL' : 'BIG'; }
+
+    // ---- Parse numbers from input boxes
+    function parseNums(){
+      const inputs = document.querySelectorAll('.number-input');
+      const nums = Array.from(inputs)
+        .map(input => {
+          const value = input.value.trim();
+          return value === '' ? null : parseInt(value);
+        })
+        .filter(n => n !== null && !isNaN(n) && n >= 0 && n <= 9);
+      
+      return nums.length >= 5 ? nums : [];
+    }
+
+    // ---- Fixed weights (no learning)
+    const weights = {
+      majority: 1.0,
+      recency: 1.2,
+      streak: 1.1,
+      transition: 1.1
+    };
+
+    function voteAdd(votes, who, w){ votes[who] = (votes[who]||0) + w; }
+
+    // ---- Signals
+    function signalMajority(nums){
+      const types = nums.map(toType);
+      const big = types.filter(t=>t==='BIG').length;
+      const small = types.length - big;
+      let winner = 'TIE', margin = Math.abs(big-small);
+      if(big>small) winner='BIG'; else if(small>big) winner='SMALL';
+      return {name:'Majority', winner, margin, info:{big, small}};
+    }
+
+    function signalRecency(nums){
+      const types = nums.map(toType);
+      let big=0, small=0;
+      for(let i=0;i<types.length;i++){
+        const w = (i+1);
+        if(types[i]==='BIG') big += w; else small += w;
+      }
+      let winner='TIE', margin=Math.abs(big-small);
+      if(big>small) winner='BIG'; else if(small>big) winner='SMALL';
+      return {name:'Recency', winner, margin, info:{big, small}};
+    }
+
+    function signalStreak(nums){
+      const types = nums.map(toType);
+      let k=1;
+      for(let i=types.length-1; i>0; i--){
+        if(types[i]===types[i-1]) k++; else break;
+      }
+      const last = types[types.length-1];
+      let winner='TIE', margin=0;
+      if(k>=2){ winner=last; margin=k-1; }
+      return {name:'Streak', winner, margin, info:{streakLen:k, last}};
+    }
+
+    function signalTransition(nums){
+      const types = nums.map(toType);
+      let b2s=0, s2b=0, same=0;
+      for(let i=1;i<types.length;i++){
+        const a=types[i-1], b=types[i];
+        if(a==='BIG' && b==='SMALL') b2s++;
+        else if(a==='SMALL' && b==='BIG') s2b++;
+        else same++;
+      }
+      let winner='TIE', margin=Math.abs(s2b-b2s);
+      if(s2b>b2s) winner='BIG'; else if(b2s>s2b) winner='SMALL';
+      if(types.length>=2 && winner!=='TIE'){
+        const a=types[types.length-2], b=types[types.length-1];
+        if(a==='BIG' && b==='SMALL' && winner==='SMALL') margin+=1;
+        if(a==='SMALL' && b==='BIG' && winner==='BIG') margin+=1;
+      }
+      return {name:'Transition', winner, margin, info:{s2b, b2s, same}};
+    }
+
+    // ---- Ensemble
+    function ensemble(nums){
+      const sigs = [
+        signalMajority(nums),
+        signalRecency(nums),
+        signalStreak(nums),
+        signalTransition(nums),
+      ];
+
+      const votes = {BIG:0, SMALL:0};
+      sigs.forEach(s=>{
+        const key = s.name.toLowerCase();
+        if(s.winner==='BIG') voteAdd(votes, 'BIG', weights[key] ?? 1);
+        else if(s.winner==='SMALL') voteAdd(votes, 'SMALL', weights[key] ?? 1);
+      });
+
+      let final='TIE', margin=Math.abs(votes.BIG - votes.SMALL);
+      if(votes.BIG>votes.SMALL) final='BIG';
+      else if(votes.SMALL>votes.BIG) final='SMALL';
+
+      const decided = sigs.filter(s=>s.winner!=='TIE').length;
+      const confBase = Math.min(1, (margin+decided*0.5)/ (2.5 + Object.values(weights).reduce((a,b)=>a+b,0)/4));
+      const confidence = Math.round((0.55 + 0.45*confBase)*100); // 55–100%
+
+      return {final, confidence, votes, sigs};
+    }
+
+    // ---- UI Elements
+    const predictionText = document.getElementById('predictionText');
+    const confidenceText = document.getElementById('confidenceText');
+    const voteTags = document.getElementById('voteTags');
+    const inputSummary = document.getElementById('inputSummary');
+    const signalDetails = document.getElementById('signalDetails');
+    const weightsInfo = document.getElementById('weightsInfo');
+
+    function render(){
+      const nums = parseNums();
+      if(nums.length < 5){
+        predictionText.innerHTML = 'Please enter at least 5 numbers (0-9)';
+        confidenceText.textContent = '-';
+        voteTags.innerHTML = '';
+        inputSummary.innerHTML = '';
+        signalDetails.innerHTML = '';
+        weightsInfo.innerHTML = '';
+        return;
+      }
+      
+      const {final, confidence, votes, sigs} = ensemble(nums);
+      const counts = nums.reduce((acc,n)=>{
+        const t = toType(n);
+        acc[t] = (acc[t]||0)+1;
+        return acc;
+      }, {BIG:0, SMALL:0});
+
+      // Update prediction
+      predictionText.innerHTML = `Prediction: <strong>${final}</strong>`;
+      confidenceText.textContent = `${confidence}%`;
+      
+      // Update vote tags
+      voteTags.innerHTML = `
+        <div class="tag tag-big"><i class="fas fa-arrow-up"></i> BIG votes: ${votes.BIG.toFixed(2)}</div>
+        <div class="tag tag-small"><i class="fas fa-arrow-down"></i> SMALL votes: ${votes.SMALL.toFixed(2)}</div>
+      `;
+      
+      // Update input summary
+      inputSummary.innerHTML = `
+        <div><strong>Input Numbers:</strong> [ ${nums.join(', ')} ]</div>
+        <div style="margin-top:8px;">
+          <span style="color:#a29bfe;"><i class="fas fa-arrow-up"></i> BIG: ${counts.BIG}</span> | 
+          <span style="color:#fd79a8;"><i class="fas fa-arrow-down"></i> SMALL: ${counts.SMALL}</span>
+        </div>
+      `;
+      
+      // Update signal details
+      signalDetails.innerHTML = sigs.map(s => `
+        <div class="signal-item">
+          <span class="signal-name">${s.name}:</span>
+          <span class="signal-result ${s.winner === 'BIG' ? 'result-big' : s.winner === 'SMALL' ? 'result-small' : 'result-tie'}">
+            ${s.winner} (margin ${s.margin})
+          </span>
+        </div>
+      `).join('');
+      
+      // Update weights info
+      weightsInfo.innerHTML = `
+        <strong>Algorithm Weights:</strong> ${Object.entries(weights).map(([k,v])=>`${k}: ${v.toFixed(2)}`).join(', ')}
+      `;
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', render);
+    
+    document.getElementById('clearBtn2').addEventListener('click', ()=>{
+      document.querySelectorAll('.number-input').forEach(input => input.value = '');
+      predictionText.innerHTML = 'Prediction will appear here';
+      confidenceText.textContent = '-';
+      voteTags.innerHTML = '';
+      inputSummary.innerHTML = '';
+      signalDetails.innerHTML = '';
+      weightsInfo.innerHTML = '';
+    });
+    
+    // Allow Enter key to trigger calculation
+    document.querySelectorAll('.number-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') render();
+      });
+    });
+
+    // Premium expired event
+    window.addEventListener('premium-expired', ()=>{
+      showPage('page1');
+      renderTimer(0);
+    });
+  </script>
+</body>
+</html>
